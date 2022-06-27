@@ -37,9 +37,9 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'email' => ['required', 'unique:users'],
-            'password' => 'required'
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string'],
         ]);
 
         $user = new User();
@@ -49,7 +49,11 @@ class UserController extends Controller
 
         if($user->save()){
             return new UserResource($user);
-        }
+        } 
+
+        return response()->json([
+            'message' => 'Internal server error'
+        ], status: 500);
     }
 
     /**
@@ -84,7 +88,9 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'email' => 'unique:users',
+            'name' => ['string', 'max:255'],
+            'email' => ['string', 'email', 'max:255', 'unique:users'],
+            'password' => ['string'],
         ]);
 
         $user = User::findOrFail($id);
@@ -95,6 +101,10 @@ class UserController extends Controller
         if($user->save()){
             return new UserResource($user);
         }
+
+        return response()->json([
+            'message' => 'Internal server error'
+        ], status: 500);
     }
 
     /**
@@ -106,10 +116,14 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrDail($id); 
+
         if($user->delete()){
             return new UserResource($user);
         }
 
+        return response()->json([
+            'message' => 'Internal server error'
+        ], status: 500);
     }
 
     /**
@@ -140,8 +154,13 @@ class UserController extends Controller
            $result = $result . $key . ": " . $value . "<br>";
         }
 
-        
-        return $result;
+        if($result != ""){
+            return $result;
+        }
+
+        return response()->json([
+            'message' => 'No data found'
+        ], status: 200);
 
     }
 }
